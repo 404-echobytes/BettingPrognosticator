@@ -1,0 +1,50 @@
+2025-08-26 15:30:40,406 - utils - INFO - Starting training for football
+2025-08-26 15:30:40,406 - utils - INFO - Starting training for basketball
+2025-08-26 15:30:40,406 - utils - INFO - Starting training for tennis
+2025-08-26 15:31:19,515 - utils - ERROR - Request failed with status 403
+2025-08-26 15:31:19,532 - utils - ERROR - Request failed with status 403
+2025-08-26 15:31:19,549 - utils - ERROR - Request failed with status 403
+2025-08-26 15:31:19,550 - football - WARNING - No data available for PL 2025
+2025-08-26 15:31:19,567 - utils - ERROR - Request failed with status 403
+2025-08-26 15:31:19,584 - utils - ERROR - Request failed with status 403
+2025-08-26 15:31:19,601 - utils - ERROR - Request failed with status 403
+2025-08-26 15:31:19,601 - football - WARNING - No data available for PL 2024
+2025-08-26 15:31:19,619 - utils - ERROR - Request failed with status 403
+2025-08-26 15:31:19,635 - utils - ERROR - Request failed with status 403
+2025-08-26 15:31:19,652 - utils - ERROR - Request failed with status 403
+2025-08-26 15:31:19,652 - football - WARNING - No data available for PD 2025
+2025-08-26 15:31:19,670 - utils - ERROR - Request failed with status 403
+2025-08-26 15:31:19,688 - utils - ERROR - Request failed with status 403
+2025-08-26 15:31:19,705 - utils - ERROR - Request failed with status 403
+2025-08-26 15:31:19,705 - football - WARNING - No data available for PD 2024
+2025-08-26 15:31:19,721 - utils - ERROR - Request failed with status 403
+2025-08-26 15:31:19,740 - utils - ERROR - Request failed with status 403
+2025-08-26 15:31:19,763 - utils - ERROR - Request failed with status 403
+2025-08-26 15:31:19,763 - football - WARNING - No data available for BL1 2025
+2025-08-26 15:31:19,783 - utils - ERROR - Request failed with status 403
+2025-08-26 15:31:19,801 - utils - ERROR - Request failed with status 403
+2025-08-26 15:31:19,818 - utils - ERROR - Request failed with status 403
+2025-08-26 15:31:19,818 - football - WARNING - No data available for BL1 2024
+2025-08-26 15:31:19,835 - utils - ERROR - Request failed with status 403
+2025-08-26 15:31:19,868 - utils - ERROR - Request failed with status 403
+2025-08-26 15:31:19,889 - utils - ERROR - Request failed with status 403
+2025-08-26 15:31:19,890 - football - WARNING - No data available for SA 2025
+2025-08-26 15:31:19,906 - utils - ERROR - Request failed with status 403
+2025-08-26 15:31:19,925 - utils - ERROR - Request failed with status 403
+2025-08-26 15:31:19,944 - utils - ERROR - Request failed with status 403
+2025-08-26 15:31:19,944 - football - WARNING - No data available for SA 2024
+2025-08-26 15:31:19,963 - utils - ERROR - Request failed with status 403
+2025-08-26 15:31:19,990 - utils - ERROR - Request failed with status 403
+2025-08-26 15:31:20,012 - utils - ERROR - Request failed with status 403
+2025-08-26 15:31:20,013 - football - WARNING - No data available for FL1 2025
+2025-08-26 15:31:20,037 - utils - ERROR - Request failed with status 403
+2025-08-26 15:31:20,073 - utils - ERROR - Request failed with status 403
+2025-08-26 15:31:20,106 - utils - ERROR - Request failed with status 403
+2025-08-26 15:31:20,107 - football - WARNING - No data available for FL1 2024
+2025-08-26 15:31:20,107 - utils - INFO - Per-minute rate limit reached, sleeping for 59.02 seconds
+2025-08-26 15:37:29,776 - utils - INFO - Starting backtest for football
+2025-08-26 15:37:29,776 - utils - WARNING - No model found for football
+2025-08-26 15:37:29,776 - utils - INFO - Starting backtest for basketball
+2025-08-26 15:37:29,777 - utils - WARNING - No model found for basketball
+2025-08-26 15:37:29,777 - utils - INFO - Starting backtest for tennis
+2025-08-26 15:37:29,777 - utils - WARNING - No model found for tennis
