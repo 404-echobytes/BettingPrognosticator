@@ -9,7 +9,7 @@ import logging
 import numpy as np
 import pandas as pd
 from datetime import datetime, timedelta
-from typing import Dict, List, Tuple, Optional, Any
+from typing import Dict, List, Tuple, Optional, Any, Union
 import threading
 import time
 import requests
@@ -22,11 +22,8 @@ import xgboost as xgb
 import lightgbm as lgb
 from sklearn.ensemble import RandomForestClassifier
 import warnings
-from config import CONFIG
 import sqlite3
-from typing import Dict, List, Optional, Tuple, Any, Union
 import joblib
-import requests
 from config import CONFIG
 
 warnings.filterwarnings('ignore')
@@ -287,6 +284,10 @@ class AdvancedFeatureEngineer:
         """Create head-to-head historical features"""
         df = df.copy()
 
+        # Ensure date is datetime
+        if 'date' in df.columns:
+            df['date'] = pd.to_datetime(df['date'])
+
         # Create unique match identifier
         df['match_key'] = df.apply(
             lambda x: tuple(sorted([x[team1_col], x[team2_col]])), axis=1
@@ -309,10 +310,10 @@ class AdvancedFeatureEngineer:
         df['h2h_avg_result'] = df['h2h_avg_result'].fillna(0.5)
         df['h2h_result_std'] = df['h2h_result_std'].fillna(0)
 
-        # Days since last meeting
-        df['days_since_last_meeting'] = (
-            df['date'] - df['last_meeting']
-        ).dt.days.fillna(999)
+        # Days since last meeting - convert to numeric
+        if 'date' in df.columns and 'last_meeting' in df.columns:
+            days_diff = (df['date'] - df['last_meeting']).dt.days.fillna(999)
+            df['days_since_last_meeting'] = days_diff.astype(float)
 
         return df
 
@@ -429,11 +430,21 @@ class ModelTrainer:
                         feature_selection: bool = True) -> Tuple[np.ndarray, np.ndarray]:
         """Prepare features with scaling and selection"""
 
-        # Handle categorical variables
+        # Handle categorical and datetime variables
         X_processed = X.copy()
+        
+        # Convert datetime columns to numeric (days since epoch)
+        datetime_cols = X_processed.select_dtypes(include=['datetime64']).columns
+        for col in datetime_cols:
+            X_processed[col] = pd.to_numeric(X_processed[col], errors='coerce')
+        
+        # Handle remaining categorical variables
         for col in X_processed.select_dtypes(include=['object']).columns:
             le = LabelEncoder()
             X_processed[col] = le.fit_transform(X_processed[col].astype(str))
+
+        # Ensure all data is numeric
+        X_processed = X_processed.select_dtypes(include=[np.number])
 
         # Scale features
         scaler = StandardScaler()
@@ -672,7 +683,13 @@ class DataManager:
             # Default rate limiter
             self.requester = RateLimitedRequester()
 
-        os.makedirs(self.cache_path, exist_ok=True)
+        # Ensure cache directory exists
+        try:
+            os.makedirs(self.cache_path, exist_ok=True)
+        except Exception as e:
+            logger.error(f"Error creating cache directory: {e}")
+            self.cache_path = 'data/cache'  # Fallback
+            os.makedirs(self.cache_path, exist_ok=True)
 
     def get_cached_data(self, cache_key: str) -> Optional[Any]:
         """Get data from cache if not expired"""

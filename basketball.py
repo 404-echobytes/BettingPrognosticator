@@ -96,8 +96,8 @@ class BasketballPredictor:
                         'date': game['date'][:10],
                         'home_team': game['teams']['home']['name'],
                         'away_team': game['teams']['away']['name'],
-                        'home_score': game['scores']['home']['total'],
-                        'away_score': game['scores']['away']['total'],
+                        'home_score': int(game['scores']['home']['total'] or 0),
+                        'away_score': int(game['scores']['away']['total'] or 0),
                         'home_field_goals': 0,  # Would need separate stats API call
                         'away_field_goals': 0,
                         'home_three_pointers': 0,
@@ -110,16 +110,18 @@ class BasketballPredictor:
                         'away_turnovers': 0,
                         'league': 'NBA',
                         'season': season,
-                        'game_id': game['id']
+                        'game_id': str(game['id'])
                     }
                     games_data.append(game_data)
         
-        if games_data:
-            df = pd.DataFrame(games_data)
-            logger.info(f"Fetched {len(df)} NBA games")
-            return df
+        # Fallback to sample data if API fails
+        if not games_data:
+            logger.warning(f"API failed, generating sample NBA data for {season}")
+            return self._generate_sample_nba_data(season)
         
-        return None
+        df = pd.DataFrame(games_data)
+        logger.info(f"Fetched {len(df)} NBA games")
+        return df
     
     def _fetch_generic_basketball_data(self, league: str, season: str) -> Optional[pd.DataFrame]:
         """Fetch data for other basketball leagues"""
@@ -135,6 +137,10 @@ class BasketballPredictor:
     def prepare_basketball_features(self, df: pd.DataFrame) -> pd.DataFrame:
         """Prepare advanced basketball features"""
         df = df.copy()
+        
+        # Ensure date column is properly handled
+        if 'date' in df.columns:
+            df['date'] = pd.to_datetime(df['date'])
         
         # Basic feature engineering
         df = self.feature_engineer.create_base_features(df)
@@ -234,15 +240,17 @@ class BasketballPredictor:
             df['away_ast_to_ratio'] = (df['away_assists'] + 1) / (df['away_turnovers'] + 1)
         
         # Rest days and back-to-back games
-        df['date'] = pd.to_datetime(df['date'])
-        for team_type in ['home', 'away']:
-            team_col = f'{team_type}_team'
-            
-            # Days since last game
-            df[f'{team_type}_rest_days'] = df.groupby(team_col)['date'].diff().dt.days.fillna(3)
-            
-            # Back-to-back games indicator
-            df[f'{team_type}_back_to_back'] = (df[f'{team_type}_rest_days'] <= 1).astype(int)
+        if 'date' in df.columns:
+            df['date'] = pd.to_datetime(df['date'])
+            for team_type in ['home', 'away']:
+                team_col = f'{team_type}_team'
+                
+                # Days since last game
+                rest_days = df.groupby(team_col)['date'].diff().dt.days.fillna(3)
+                df[f'{team_type}_rest_days'] = rest_days.astype(float)
+                
+                # Back-to-back games indicator
+                df[f'{team_type}_back_to_back'] = (df[f'{team_type}_rest_days'] <= 1).astype(int)
         
         # Season context
         df['games_played'] = df.groupby(['home_team', 'away_team']).cumcount() + 1
@@ -258,16 +266,18 @@ class BasketballPredictor:
         # Prepare features
         feature_df = self.prepare_basketball_features(df)
         
-        # Select features for training
+        # Select features for training - exclude all non-numeric columns
         exclude_cols = [
             'date', 'home_team', 'away_team', 'home_score', 'away_score',
-            'game_id', 'season', 'result', 'league'
+            'game_id', 'season', 'result', 'league', 'match_key', 'last_meeting'
         ]
         
-        feature_cols = [col for col in feature_df.columns if col not in exclude_cols]
+        # Get only numeric columns for training
+        numeric_cols = feature_df.select_dtypes(include=[np.number]).columns
+        feature_cols = [col for col in numeric_cols if col not in exclude_cols]
         
-        # Handle missing values
-        X = feature_df[feature_cols].fillna(0)
+        # Handle missing values and ensure all features are numeric
+        X = feature_df[feature_cols].fillna(0).astype(float)
         y = (feature_df['result'] + 1) // 2  # Convert -1,1 to 0,1 for binary classification
         
         # Train ensemble model
@@ -506,29 +516,62 @@ class BasketballPredictor:
             except Exception as e:
                 print(f"{Fore.RED}Error: {e}{Style.RESET_ALL}")
     
+    def _generate_sample_nba_data(self, season: str) -> pd.DataFrame:
+        """Generate sample NBA data for testing"""
+        np.random.seed(42)
+        
+        teams = list(self.nba_teams.values())
+        games = []
+        
+        # Generate 200 sample games
+        start_date = datetime.strptime(f"{season}-10-01", '%Y-%m-%d')
+        
+        for i in range(200):
+            home_team = np.random.choice(teams)
+            away_team = np.random.choice([t for t in teams if t != home_team])
+            
+            # Generate realistic NBA scores (higher scoring than other sports)
+            home_score = np.random.normal(112, 12)  # Average NBA score ~112
+            away_score = np.random.normal(110, 12)  # Slight home advantage
+            
+            game_date = start_date + timedelta(days=i)
+            
+            games.append({
+                'date': game_date.strftime('%Y-%m-%d'),
+                'home_team': home_team,
+                'away_team': away_team,
+                'home_score': max(80, int(home_score)),  # Minimum 80 points
+                'away_score': max(80, int(away_score)),
+                'home_field_goals': 0,
+                'away_field_goals': 0,
+                'home_three_pointers': 0,
+                'away_three_pointers': 0,
+                'home_rebounds': 0,
+                'away_rebounds': 0,
+                'home_assists': 0,
+                'away_assists': 0,
+                'home_turnovers': 0,
+                'away_turnovers': 0,
+                'league': 'NBA',
+                'season': season,
+                'game_id': f"sample_{i}"
+            })
+        
+        return pd.DataFrame(games)
+
     def run_training_mode(self):
         """Run training mode for basketball"""
         
         print(f"{Fore.YELLOW}🎓 Basketball Training Mode{Style.RESET_ALL}")
-        
-        # For demo purposes, create sample data
         print("Fetching NBA season data...")
         
-        # This would fetch real data
-        sample_data = pd.DataFrame({
-            'date': pd.date_range('2024-01-01', periods=100),
-            'home_team': np.random.choice(list(self.nba_teams.values()), 100),
-            'away_team': np.random.choice(list(self.nba_teams.values()), 100),
-            'home_score': np.random.randint(90, 130, 100),
-            'away_score': np.random.randint(90, 130, 100)
-        })
+        # Get NBA data
+        current_year = datetime.now().year
+        nba_data = self.fetch_basketball_data('NBA', str(current_year))
         
-        # Remove games where team plays itself
-        sample_data = sample_data[sample_data['home_team'] != sample_data['away_team']]
-        
-        if len(sample_data) > 0:
-            print(f"Training on {len(sample_data)} games")
-            self.train_basketball_model(sample_data)
+        if nba_data is not None and len(nba_data) > 0:
+            print(f"Training on {len(nba_data)} games")
+            self.train_basketball_model(nba_data)
         else:
             print(f"{Fore.RED}❌ No training data available{Style.RESET_ALL}")
     

@@ -138,8 +138,11 @@ def run_football_predictor():
         predictor.run()
     except ImportError as e:
         print(f"{Fore.RED}❌ Error importing football module: {e}{Style.RESET_ALL}")
+        print(f"{Fore.YELLOW}💡 Try installing missing dependencies{Style.RESET_ALL}")
     except Exception as e:
         print(f"{Fore.RED}❌ Error running football predictor: {e}{Style.RESET_ALL}")
+        import traceback
+        traceback.print_exc()
 
 def run_basketball_predictor():
     """Launch basketball prediction module"""
