@@ -48,3 +48,12 @@
 2025-08-26 15:37:29,777 - utils - WARNING - No model found for basketball
 2025-08-26 15:37:29,777 - utils - INFO - Starting backtest for tennis
 2025-08-26 15:37:29,777 - utils - WARNING - No model found for tennis
+2025-08-27 08:21:54,684 - utils - INFO - Starting training for football
+2025-08-27 08:21:54,684 - utils - INFO - Starting training for basketball
+2025-08-27 08:21:54,684 - utils - INFO - Starting training for tennis
+2025-08-27 08:22:27,838 - basketball - WARNING - API failed, generating sample NBA data for 2025
+2025-08-27 08:22:44,016 - basketball - WARNING - API failed, generating sample NBA data for 2025
+2025-08-27 08:22:52,676 - utils - ERROR - Request failed with status 403
+2025-08-27 08:22:52,693 - utils - WARNING - Rate limited, waiting 2.0 seconds
+2025-08-27 08:22:54,709 - utils - WARNING - Rate limited, waiting 4.0 seconds
+2025-08-27 08:22:58,710 - tennis - WARNING - API failed, generating sample tennis data for ATP 2025
